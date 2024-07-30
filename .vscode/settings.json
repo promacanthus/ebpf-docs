@@ -1,0 +1,6 @@
+{
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/argoproj/argo-workflows/master/api/jsonschema/schema.json": "examples/**/*.yaml",
+        "https://json.schemastore.org/github-workflow.json": "file:///Users/sugoi/Documents/github/ebpf-docs/.github/workflows/deploy.yml"
+    }
+}
