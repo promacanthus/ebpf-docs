@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: '/ebpf-docs/',
   title: "eBPF Docs",
   description: "A eBPF Site",
   themeConfig: {
