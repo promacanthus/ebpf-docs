@@ -42,7 +42,15 @@ export default defineConfig({
               { text: 'Kfuncs', link: '/linux/concepts/kfuncs' },
             ]
           },
-          { text: '程序类型', link: '/linux/program-type' },
+          {
+            text: '程序类型', link: '/linux/program-type', collapsed: true,
+            items: [
+              { text: '网络程序类型', link: '/linux/program-type/network-program-types' },
+              { text: 'cGroup程序类型', link: '/linux/program-type/cgroup-program-types' },
+              { text: '跟踪程序类型', link: '/linux/program-type/tracing-program-types' },
+              { text: '其他程序类型', link: '/linux/program-type/misc-program-types' },
+            ]
+          },
           { text: 'Map 类型', link: '/linux/map-type' },
           { text: '帮助函数', link: '/linux/helper-function' },
           { text: '系统调用', link: '/linux/syscall' },
