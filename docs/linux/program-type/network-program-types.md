@@ -150,7 +150,7 @@ v5.18
 
 将 XDP 程序附加到网络设备有两种方式，传统方式是通过 [netlink](https://man7.org/linux/man-pages/man7/netlink.7.html) 套接字完成，其细节复杂。实现netlink XDP 附加的库示例包括 [`vishvananda/netlink`](https://github.com/vishvananda/netlink/blob/afa2eb2a66aac1f8f370287f236ba93d4c078dd6/link_linux.go#L934) 和 [libbpf](https://github.com/libbpf/libbpf/blob/ea284299025bf85b85b4923191de6463cd43ccd6/src/netlink.c#L321)。
 
-现代且推荐的方式是使用 BPF 链接。这样做就像调用 [`BPF_LINK_CREATE`](../syscall/BPF_LINK_CREATE.md) 一样简单，将 `target_ifindex` 设置为目标网络接口，`attach_type` 设置为 `BPF_LINK_TYPE_XDP`，以及与 netlink 方法相同的 `flags`。
+现代且推荐的方式是使用 BPF 链接。这样做就像调用 `BPF_LINK_CREATE` 一样简单，将 `target_ifindex` 设置为目标网络接口，`attach_type` 设置为 `BPF_LINK_TYPE_XDP`，以及与 netlink 方法相同的 `flags`。
 
 有一些微妙的差异。netlink 方法将为网络接口提供对程序的引用，这意味着附加后，程序将保持附加状态，直到被程序分离，即使原始加载器存在。这与 `kprobes` 形成对比，例如，一旦加载器存在，`kprobes` 就会停止（假设我们没有固定程序）。然而，使用链接时，这种引用不会发生，链接的创建返回一个文件描述符，用于管理生命周期，如果链接文件描述符关闭或加载器存在而没有固定它，程序将从网络接口分离。
 
