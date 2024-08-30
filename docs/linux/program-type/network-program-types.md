@@ -339,11 +339,48 @@ Socket SKB 程序在 L4 数据流上被调用，其目的是解析 L7 消息，�
 
 套接字 SKB 程序被附加到 `BPF_MAP_TYPE_SOCKMAP` 或 `BPF_MAP_TYPE_SOCKHASH` 映射，并且当在作为程序所附加映射一部分的套接字上接收到消息时将被调用。程序的确切用途取决于其附加类型。
 
-#### 作为 BPF_SK_SKB_STREAM_PARSER 程序
+#### 作为 `BPF_SK_SKB_STREAM_PARSER` 程序
 
-#### 作为 BPF_SK_SKB_STREAM_VERDICT 程序
+当使用`BPF_SK_SKB_STREAM_PARSER`程序类型时，该程序充当[流解析器](https://www.kernel.org/doc/Documentation/networking/strparser.txt)。流解析器背后的思想是解析基于数据流（如 TCP）实现的应用层协议（OSI 第7层）。
 
-#### 作为 BPF_SK_SKB_VERDICT 程序
+程序的任务是解析 L7 数据/数据包，并告诉内核 L7 消息的长度。这将允许内核合并多个数据流数据包，并为每个[`recv`](https://man7.org/linux/man-pages/man2/recv.2.html)返回完整的 L7 消息，而不是返回可能只包含 L7 消息部分的 TCP 消息。
+
+返回值的解释如下：
+
+- `>0` - 表示成功解析的消息长度
+- `0` - 表示必须接收更多数据才能解析消息
+- `-ESTRPIPE` - 当前消息不应由内核处理，将套接字的控制权返回给用户空间，用户空间可以继续自己读取消息
+- `other < 0` - 解析错误，假设同步已丢失且流不可恢复，将控制权交回给用户空间（应用程序预期将关闭 TCP 套接字）
+
+> !!! 注意
+> 在[v5.10](https://github.com/torvalds/linux/commit/ef5659280eb13e8ac31c296f58cfdfa1684ac06b)之前，如果你想使用流判决，需要将流解析器附加到`BPF_MAP_TYPE_SOCKMAP`。在更新的版本中，这不再需要。
+>
+> 在旧的内核上，可以使用一个无操作程序来返回当前 skb 的长度，以保持默认行为，并通过每个 TCP 数据包传递判决。
+>
+> ```c
+> SEC("sk_skb/stream_parser")
+> int noop_parser(struct __sk_buff *skb)
+> {
+>     return skb->len;
+> }
+> ```
+
+#### 作为 `BPF_SK_SKB_STREAM_VERDICT` 程序
+
+当使用此附加类型时，该程序充当过滤器，类似于[TC](../program-type/BPF_PROG_TYPE_SCHED_CLS.md)或[XDP](../program-type/BPF_PROG_TYPE_XDP.md)程序。程序被调用以处理由解析器（或如果没有指定解析器，则为 TCP 数据包）指示的每个消息，并返回一个判决。
+
+返回值的解释如下：
+
+- `SK_PASS` - 消息可以传递到套接字，或者已经通过帮助函数重定向。
+- `SK_DROP` - 应丢弃该消息。
+
+与 TC 或 XDP 程序不同，没有特殊的重定向返回代码，像 `bpf_sk_redirect_map` 这样的帮助函数在成功时将返回`SK_PASS`。
+
+#### 作为`BPF_SK_SKB_VERDICT`程序
+
+[v5.13](https://github.com/torvalds/linux/commit/a7ba4558e69a3c2ae4ca521f015832ef44799538)
+
+非流判决附加类型是`BPF_SK_SKB_STREAM_VERDICT`附加类型的替代。程序类型具有相同的工作和使用相同的返回值。不同之处在于，流判决变体仅支持TCP数据流，而`BPF_SK_SKB_VERDICT`也支持UDP。
 
 ### [上下文](https://ebpf-docs.dylanreimerink.nl/linux/program-type/BPF_PROG_TYPE_SK_SKB/#context)
 
