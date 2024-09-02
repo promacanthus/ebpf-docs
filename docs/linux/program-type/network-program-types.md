@@ -367,7 +367,7 @@ Socket SKB 程序在 L4 数据流上被调用，其目的是解析 L7 消息，�
 
 #### 作为 `BPF_SK_SKB_STREAM_VERDICT` 程序
 
-当使用此附加类型时，该程序充当过滤器，类似于[TC](../program-type/BPF_PROG_TYPE_SCHED_CLS.md)或[XDP](../program-type/BPF_PROG_TYPE_XDP.md)程序。程序被调用以处理由解析器（或如果没有指定解析器，则为 TCP 数据包）指示的每个消息，并返回一个判决。
+当使用此附加类型时，该程序充当过滤器，类似于 TC 或 XDP 程序。程序被调用以处理由解析器（或如果没有指定解析器，则为 TCP 数据包）指示的每个消息，并返回一个判决。
 
 返回值的解释如下：
 
@@ -490,8 +490,8 @@ __u32 ingress_ifindex;  /* The arriving interface. Determined by inet_iif. */
 
 | 字段 | 描述 |
 |------|------|
-| `sk` | 这个字段是指向所选套接字的指针，该字段是只读的，但可以通过 [`bpf_sk_assign`](../helper-function/bpf_sk_assign.md) 辅助函数进行更新。 |
-| `cookie` | 如果程序在 [`PROG_TEST_RUN`](../syscall/BPF_PROG_TEST_RUN.md) 期间分配了一个套接字，这个字段会被设置为分配的套接字的 cookie。 |
+| `sk` | 这个字段是指向所选套接字的指针，该字段是只读的，但可以通过 `bpf_sk_assign` 帮助函数进行更新。 |
+| `cookie` | 如果程序在 `PROG_TEST_RUN` 期间分配了一个套接字，这个字段会被设置为分配的套接字的 cookie。 |
 | `family` | 程序被调用时的连接/数据包的地址族。可以是 [`AF_INET`](https://elixir.bootlin.com/linux/v6.2.8/source/include/linux/socket.h#L191) 或 [`AF_INET6`](https://elixir.bootlin.com/linux/v6.2.8/source/include/linux/socket.h#L199)。 |
 | `protocol` | 程序被调用时的连接/数据包的传输层协议。可以是 [`IPPROTO_TCP`](https://elixir.bootlin.com/linux/v6.2.8/source/include/uapi/linux/in.h#L38) 或 [`IPPROTO_UDP`](https://elixir.bootlin.com/linux/v6.2.8/source/include/uapi/linux/in.h#L44)。 |
 | `remote_ip4` | 程序被调用时的连接/数据包的远程 IPv4 地址。 |
@@ -504,9 +504,9 @@ __u32 ingress_ifindex;  /* The arriving interface. Determined by inet_iif. */
 
 ### 附加
 
-这种程序类型必须始终使用 `BPF_SK_LOOKUP` 的 [`expected_attach_type`](../syscall/BPF_PROG_LOAD.md#expected_attach_type) 加载。
+这种程序类型必须始终使用 `BPF_SK_LOOKUP` 的 `expected_attach_type` 加载。
 
-套接字查找程序通过链接附加到一个网络命名空间。当[创建链接](../syscall/BPF_LINK_CREATE.md)时，`prog_fd` 应设置为程序的文件描述符，`target_fd` 应设置为网络命名空间的文件描述符，而 `attach_type` 应设置为 `BPF_SK_LOOKUP`。
+套接字查找程序通过链接附加到一个网络命名空间。当创建链接时，`prog_fd` 应设置为程序的文件描述符，`target_fd` 应设置为网络命名空间的文件描述符，而 `attach_type` 应设置为 `BPF_SK_LOOKUP`。
 
 ### 示例
 
@@ -639,8 +639,8 @@ struct sk_reuseport_md {
 
 当用于迁移时，可以采取以下操作：
 
-- 使用 [bpf_sk_select_reuseport](../helper-function/bpf_sk_select_reuseport.md) 选择一个套接字后返回 `SK_PASS`，将其选为新的监听器。
-- 没有调用 [bpf_sk_select_reuseport](../helper-function/bpf_sk_select_reuseport.md) 就返回 `SK_PASS`，回落到随机选择。
+- 使用 bpf_sk_select_reuseport 选择一个套接字后返回 `SK_PASS`，将其选为新的监听器。
+- 没有调用 bpf_sk_select_reuseport 就返回 `SK_PASS`，回落到随机选择。
 - 返回 `SK_DROP`，取消迁移。
 
 !!! 注意
